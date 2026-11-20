@@ -1,5 +1,7 @@
 # 🫀 CardioPulse-ESP32 Telemonitoring System
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Online%20(Zero%20Setup)-emerald?style=for-the-badge&logo=githubpages&logoColor=white)](https://abderrahmane-abt.github.io/cardiology-telemonitoring-system/)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
 [![React 19](https://img.shields.io/badge/React-19.3-cyan.svg)](https://react.dev/)
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL%203D-rose.svg)](https://threejs.org/)
@@ -13,7 +15,17 @@ Built with direct **ESP32 microcontroller hardware integration**, the system pro
 
 ---
 
-## 🚀 PRIMARY METHOD: 1-Click Automated Scripts (Recommended for Beginners)
+## 🌐 INSTANT ACCESS: Live Online Web App (No Installation Required)
+
+For doctors, faculty evaluators, or team members who simply want to test or use the platform:
+👉 **[Open Live Telemonitoring System](https://abderrahmane-abt.github.io/cardiology-telemonitoring-system/)**
+
+> [!NOTE]
+> Because GitHub Pages is served over secure **HTTPS**, **direct USB hardware connection with your ESP32 works directly in the browser** via the Web Serial API (Chrome, Edge, Brave, or Opera on desktop). No local server required!
+
+---
+
+## 🚀 LOCAL METHOD: 1-Click Automated Launchers
 
 > [!TIP]
 > **Why use this method?**  
