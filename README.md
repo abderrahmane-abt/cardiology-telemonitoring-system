@@ -13,108 +13,138 @@ Built with direct **ESP32 microcontroller hardware integration**, the system pro
 
 ---
 
-## ⚡ JUST RUN THE SCRIPT = DONE! 🚀
+## 🚀 PRIMARY METHOD: 1-Click Automated Scripts (Recommended for Beginners)
 
-Don't want to spend time reading long guides? We created **1-click automated startup scripts** that handle **everything** for you:
-- Verifies Node.js & npm (and offers to auto-install Node.js 20 LTS if missing or outdated).
-- Automatically installs all packages and dependencies (`npm install`).
-- Starts the Vite development server.
-- **Automatically opens your web browser to `http://localhost:5173`!**
-
-### 🐧 On Linux / Ubuntu / Debian / macOS:
-```bash
-./run.sh
-```
-*(Or `chmod +x run.sh && ./run.sh` — That's it! Done.)*
-
-### 🪟 On Windows 10 / 11:
-👉 **Just double-click `run.bat` in the folder!**  
-*(Or execute `.\run.bat` or `.\run.ps1` in PowerShell/CMD — That's it! Done.)*
+> [!TIP]
+> **Why use this method?**  
+> You don't need to manually configure libraries, update Node.js, install npm packages, or type URLs. The scripts handle **100% of the setup automatically** and launch the application directly in your browser.
 
 ---
 
-## 📋 Comprehensive Setup Guide by Operating System
+### 🐧 For Linux / Ubuntu / Debian / macOS Users
 
-### 🐧 Ubuntu / Debian / Linux Mint (Recommended Step-by-Step)
+#### Step 1: Open your Terminal
+On Ubuntu, press `Ctrl` + `Alt` + `T` to open a terminal window.
 
-> [!IMPORTANT]
-> **Avoid `sudo apt install nodejs` alone!**  
-> On Ubuntu/Debian, the default repository installs an outdated Node.js (v12 or v14), which will cause Vite and React 19 to fail. Follow the steps below to install **Node.js 20 LTS** cleanly:
-
-#### Step 1: Install Git, cURL & Build Tools
-```bash
-sudo apt update
-sudo apt install -y git curl build-essential
-```
-
-#### Step 2: Install Node.js 20 LTS (via official NodeSource repository)
-```bash
-# Add NodeSource official repository
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-
-# Install Node.js and npm
-sudo apt install -y nodejs
-
-# Verify versions (Node must be >= 18.0.0, npm >= 9.x)
-node -v
-npm -v
-```
-
-*(Alternative without sudo: install via [NVM](https://github.com/nvm-sh/nvm): `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash && source ~/.bashrc && nvm install 20`)*
-
-#### Step 3: Clone, Install & Start
+#### Step 2: Clone the repository and enter the directory
 ```bash
 git clone https://github.com/abderrahmane-abt/cardiology-telemonitoring-system.git
 cd cardiology-telemonitoring-system
-npm install
-npm run dev
 ```
 
-Open your browser at: 👉 **`http://localhost:5173`**
+#### Step 3: Run the script
+```bash
+chmod +x run.sh && ./run.sh
+```
+
+#### ✨ What the script does for you automatically:
+1. **Checks Node.js:** If Node.js is missing or too old (< v18), the script prompts you with `[Y/n]` and automatically installs the official **Node.js 20 LTS** using `apt`.
+2. **Installs Libraries:** Runs `npm install` automatically on first launch.
+3. **Starts the Server:** Launches the local Vite development server.
+4. **Opens Browser:** Automatically opens your default web browser to:  
+   👉 **`http://localhost:5173`**
+
+#### 🔄 How to catch up on latest updates:
+Whenever updates are pushed to GitHub, simply run:
+```bash
+git pull && ./run.sh
+```
 
 ---
 
-### 🪟 Windows 10 / 11 Setup
+### 🪟 For Windows 10 / 11 Users (No Terminal Skills Needed!)
 
-#### Step 1: Install Node.js
-1. Go to [https://nodejs.org/](https://nodejs.org/) and download the **Node.js 20 LTS (Long Term Support)** Windows Installer (`.msi`).
-2. Run the installer. **Important:** Ensure the checkbox **"Add to PATH"** is selected.
-
-#### Step 2: Install Git for Windows
-1. Download Git from [https://git-scm.com/download/win](https://git-scm.com/download/win).
-2. Install with default settings.
-
-#### Step 3: Clone and Launch
-Open **PowerShell** or **Command Prompt**:
+#### Step 1: Clone or Download the project
+Clone via Git:
 ```powershell
 git clone https://github.com/abderrahmane-abt/cardiology-telemonitoring-system.git
-cd cardiology-telemonitoring-system
-npm install
-npm run dev
 ```
-Or simply double-click `run.bat` in the folder.
+*(Or click the green **Code ➔ Download ZIP** button on GitHub and extract the folder).*
+
+#### Step 2: Double-click `run.bat`
+1. Open the project folder in Windows File Explorer.
+2. Locate the file named **`run.bat`**.
+3. **Double-click it!**
+
+#### ✨ What the Windows script does for you automatically:
+1. **Verifies Node.js:** If Node.js is missing, it will automatically attempt to install Node.js 20 LTS using Windows Package Manager (`winget`) or direct you to the official installer.
+2. **Installs Libraries:** Automatically runs `npm install` if `node_modules` is not found.
+3. **Spins up the Engine:** Launches the Vite local telemetry server.
+4. **Opens Browser:** Automatically pops open your default web browser to:  
+   👉 **`http://localhost:5173`**
+
+*(PowerShell users can also run `.\run.bat` or `.\run.ps1`).*
 
 ---
 
-### 🍏 macOS Setup
+## 💻 SECONDARY METHOD: Manual Terminal Commands (For Developers)
+
+If you are a developer and prefer running standard terminal commands yourself without using the helper scripts:
+
+### 1. Manual Setup on Ubuntu / Debian / Linux Mint
+
+> [!IMPORTANT]
+> **Do not use `sudo apt install nodejs` alone!**  
+> The default Ubuntu apt repository contains an ancient Node.js version (v12/v14). Vite and React 19 require **Node.js $\ge$ 18.0.0** (Node 20 LTS is strongly recommended).
+
+```bash
+# 1. Update package lists and install build tools
+sudo apt update
+sudo apt install -y git curl build-essential
+
+# 2. Add NodeSource Node 20 LTS repository & install Node.js
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# 3. Verify installed versions
+node -v   # Output should be v20.x.x
+npm -v    # Output should be 9.x or 10.x
+
+# 4. Clone repository
+git clone https://github.com/abderrahmane-abt/cardiology-telemonitoring-system.git
+cd cardiology-telemonitoring-system
+
+# 5. Install dependencies and run development server
+npm install
+npm run dev
+```
+Open **`http://localhost:5173`** in your browser.
+
+*(Alternative: install via [NVM](https://github.com/nvm-sh/nvm): `nvm install 20 && nvm use 20`)*
+
+---
+
+### 2. Manual Setup on Windows 10 / 11
+
+1. Download and install **Node.js 20 LTS** from [https://nodejs.org/](https://nodejs.org/) *(check "Add to PATH" during installation)*.
+2. Download and install **Git for Windows** from [https://git-scm.com/](https://git-scm.com/).
+3. Open **PowerShell** or **Command Prompt** and run:
+   ```powershell
+   git clone https://github.com/abderrahmane-abt/cardiology-telemonitoring-system.git
+   cd cardiology-telemonitoring-system
+   npm install
+   npm run dev
+   ```
+4. Open **`http://localhost:5173`** in your browser.
+
+---
+
+### 3. Manual Setup on macOS
 
 Using [Homebrew](https://brew.sh/):
 ```bash
-# 1. Install Node.js and Git
 brew install node git
-
-# 2. Clone and start
 git clone https://github.com/abderrahmane-abt/cardiology-telemonitoring-system.git
 cd cardiology-telemonitoring-system
-chmod +x run.sh
-./run.sh
+npm install
+npm run dev
 ```
 
 ---
 
 ## 🔌 Hardware Setup & Arduino / ESP32 Integration
 
-The system supports **direct plug-and-play USB connection** via the Web Serial API (Chrome / Edge / Opera) without needing a backend server or serial bridge.
+The system supports **direct plug-and-play USB connection** via the Web Serial API (Chrome / Edge / Opera) without needing any backend server or serial bridge.
 
 ### 1. Bill of Materials (BOM)
 | Component | Protocol | Bus Address | Function |
