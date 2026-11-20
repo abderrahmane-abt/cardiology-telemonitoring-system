@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { Activity, Loader2, RotateCw, CheckCircle2 } from 'lucide-react';
+import { Activity, Loader2, CheckCircle2 } from 'lucide-react';
 import { 
   getOrLoadAnatomyModel, 
   createModelInstance, 
@@ -33,8 +33,8 @@ export const Anatomy3DCanvas: React.FC<Anatomy3DCanvasProps> = ({
   // 3D sensor markers
   const sternumMarkerRef = useRef<THREE.Mesh | null>(null);
   const sternumHaloRef = useRef<THREE.Mesh | null>(null);
-  const fingerMarkerRef = useRef<THREE.Mesh | null>(null);
-  const fingerHaloRef = useRef<THREE.Mesh | null>(null);
+  const handMarkerRef = useRef<THREE.Mesh | null>(null);
+  const handHaloRef = useRef<THREE.Mesh | null>(null);
 
   const bpmRef = useRef(bpm);
   bpmRef.current = bpm;
@@ -48,11 +48,6 @@ export const Anatomy3DCanvas: React.FC<Anatomy3DCanvasProps> = ({
   const isAlarmRef = useRef(isAlarmActive);
   isAlarmRef.current = isAlarmActive;
 
-  // Mouse interaction state
-  const isDraggingRef = useRef(false);
-  const prevMousePosRef = useRef({ x: 0, y: 0 });
-  const userRotationRef = useRef({ x: 0, y: 0 });
-
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -63,80 +58,84 @@ export const Anatomy3DCanvas: React.FC<Anatomy3DCanvasProps> = ({
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
-    camera.position.set(0, 0, 4.8);
+    // Camera framed so head, chest, and hands fill the view with zero wasted space
+    const camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
+    camera.position.set(0, 0.06, 3.7);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.3;
+    renderer.toneMappingExposure = 1.25;
     rendererRef.current = renderer;
 
     container.replaceChildren(renderer.domElement);
 
-    // Studio Lighting for High-Tech Holographic Anatomy
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+    // Balanced Clinical Lighting: soft ambient + medical cyan/emerald highlights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0x06b6d4, 2.2);
-    keyLight.position.set(3, 5, 4);
+    const keyLight = new THREE.DirectionalLight(0x38bdf8, 2.0);
+    keyLight.position.set(3, 4, 4);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0x10b981, 1.8);
+    const rimLight = new THREE.DirectionalLight(0x10b981, 1.5);
     rimLight.position.set(-3, -2, -3);
     scene.add(rimLight);
 
-    const backLight = new THREE.DirectionalLight(0x6366f1, 1.5);
-    backLight.position.set(0, 4, -4);
-    scene.add(backLight);
+    const fillLight = new THREE.DirectionalLight(0x6366f1, 1.2);
+    fillLight.position.set(0, 3, -4);
+    scene.add(fillLight);
 
-    // Master Anatomy Group
+    // Master Anatomy Group - Centered and stable (No rolling)
     const anatomyGroup = new THREE.Group();
+    anatomyGroup.position.set(0, 0, 0);
+    anatomyGroup.rotation.set(0.02, 0, 0);
     anatomyGroupRef.current = anatomyGroup;
     scene.add(anatomyGroup);
 
-    // Create 3D Sensor Node Markers
-    // 1. Sternum Marker (MPU6050)
+    // 1. SENSOR 1: BLUE DOT ON THE HAND (MAX30102 - Optical Finger Pulse)
+    // Placed precisely on the hand/fingertip of the model
+    const handGeo = new THREE.SphereGeometry(0.065, 16, 16);
+    const handMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 }); // Luminous Cyan/Blue
+    const handMesh = new THREE.Mesh(handGeo, handMat);
+    handMesh.position.set(-0.62, -0.34, 0.18);
+    handMarkerRef.current = handMesh;
+    anatomyGroup.add(handMesh);
+
+    const handHaloGeo = new THREE.RingGeometry(0.08, 0.14, 24);
+    const handHaloMat = new THREE.MeshBasicMaterial({ 
+      color: 0x38bdf8, // Pulsing Azure/Blue Halo
+      side: THREE.DoubleSide, 
+      transparent: true, 
+      opacity: 0.85 
+    });
+    const handHalo = new THREE.Mesh(handHaloGeo, handHaloMat);
+    handHalo.position.set(-0.62, -0.34, 0.19);
+    handHaloRef.current = handHalo;
+    anatomyGroup.add(handHalo);
+
+    // 2. SENSOR 2: RED/ROSE DOT ON THE STERNUM (MPU6050 - Thoracic Fall/Shock)
+    // Placed precisely on the sternum of the model
     const sternumGeo = new THREE.SphereGeometry(0.07, 16, 16);
-    const sternumMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
+    const sternumMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e }); // Rose/Red
     const sternumMesh = new THREE.Mesh(sternumGeo, sternumMat);
-    sternumMesh.position.set(0, 0.45, 0.35);
+    sternumMesh.position.set(0, 0.28, 0.35);
     sternumMarkerRef.current = sternumMesh;
     anatomyGroup.add(sternumMesh);
 
-    const sternumHaloGeo = new THREE.RingGeometry(0.09, 0.14, 24);
+    const sternumHaloGeo = new THREE.RingGeometry(0.09, 0.15, 24);
     const sternumHaloMat = new THREE.MeshBasicMaterial({ 
-      color: 0x38bdf8, 
-      side: THREE.DoubleSide, 
-      transparent: true, 
-      opacity: 0.7 
-    });
-    const sternumHalo = new THREE.Mesh(sternumHaloGeo, sternumHaloMat);
-    sternumHalo.position.set(0, 0.45, 0.36);
-    sternumHaloRef.current = sternumHalo;
-    anatomyGroup.add(sternumHalo);
-
-    // 2. Left Finger Marker (MAX30102)
-    const fingerGeo = new THREE.SphereGeometry(0.06, 16, 16);
-    const fingerMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
-    const fingerMesh = new THREE.Mesh(fingerGeo, fingerMat);
-    fingerMesh.position.set(-0.85, -0.35, 0.1);
-    fingerMarkerRef.current = fingerMesh;
-    anatomyGroup.add(fingerMesh);
-
-    const fingerHaloGeo = new THREE.RingGeometry(0.08, 0.13, 24);
-    const fingerHaloMat = new THREE.MeshBasicMaterial({ 
       color: 0xfb7185, 
       side: THREE.DoubleSide, 
       transparent: true, 
-      opacity: 0.7 
+      opacity: 0.8 
     });
-    const fingerHalo = new THREE.Mesh(fingerHaloGeo, fingerHaloMat);
-    fingerHalo.position.set(-0.85, -0.35, 0.11);
-    fingerHaloRef.current = fingerHalo;
-    anatomyGroup.add(fingerHalo);
+    const sternumHalo = new THREE.Mesh(sternumHaloGeo, sternumHaloMat);
+    sternumHalo.position.set(0, 0.28, 0.36);
+    sternumHaloRef.current = sternumHalo;
+    anatomyGroup.add(sternumHalo);
 
     let isCancelled = false;
 
@@ -147,15 +146,23 @@ export const Anatomy3DCanvas: React.FC<Anatomy3DCanvasProps> = ({
 
         const { model } = createModelInstance(masterGltf);
 
-        // Adjust materials for translucent medical cyber-contour
+        // Strip raw-meat polypaint vertex colors and apply sleek holographic cyan medical shader
         model.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
-            if (mesh.material) {
-              const mat = mesh.material as THREE.MeshStandardMaterial;
-              mat.roughness = 0.4;
-              mat.metalness = 0.2;
+            if (mesh.geometry) {
+              mesh.geometry.deleteAttribute('color');
+              mesh.geometry.deleteAttribute('COLOR_0');
             }
+            mesh.material = new THREE.MeshStandardMaterial({
+              color: 0x38bdf8, // Luminous medical cyan
+              emissive: 0x0369a1, // Subsurface biological cyan glow
+              emissiveIntensity: 0.35,
+              roughness: 0.25,
+              metalness: 0.2,
+              transparent: true,
+              opacity: 0.88,
+            });
           }
         });
 
@@ -168,48 +175,39 @@ export const Anatomy3DCanvas: React.FC<Anatomy3DCanvasProps> = ({
         setHasError(true);
       });
 
-    // Render & Animation Loop
+    // Render & Animation Loop (Fixed stable posture, no rolling)
     const clock = new THREE.Clock();
 
     const animate = () => {
       animFrameIdRef.current = requestAnimationFrame(animate);
 
-      const delta = clock.getDelta();
       const elapsed = clock.getElapsedTime();
       const currentBpm = bpmRef.current;
       const currentFinger = fingerRef.current;
       const currentMotion = motionRef.current;
 
-      if (anatomyGroupRef.current) {
-        // Continuous turntable rotation unless user is dragging
-        if (!isDraggingRef.current) {
-          userRotationRef.current.y += delta * 0.22;
+      // Animate Blue Hand Marker (MAX30102) Halo in sync with cardiac rhythm
+      if (handHaloRef.current) {
+        if (currentFinger && currentBpm > 0) {
+          const cardiacPeriod = 60 / currentBpm;
+          const pulsePhase = (elapsed % cardiacPeriod) / cardiacPeriod;
+          const pulseScale = 1.0 + Math.sin(pulsePhase * Math.PI) * 0.45;
+          handHaloRef.current.scale.set(pulseScale, pulseScale, 1);
+          handHaloRef.current.visible = true;
+        } else {
+          handHaloRef.current.visible = true;
+          handHaloRef.current.scale.set(1.0, 1.0, 1);
         }
-        anatomyGroupRef.current.rotation.y = userRotationRef.current.y;
-        anatomyGroupRef.current.rotation.x = userRotationRef.current.x;
+      }
 
-        // Animate Sternum MPU6050 Halo
-        if (sternumHaloRef.current) {
-          const sternumScale = 1.0 + Math.sin(elapsed * 4) * 0.25;
-          sternumHaloRef.current.scale.set(sternumScale, sternumScale, 1);
-          if (currentMotion >= 2.5) {
-            (sternumHaloRef.current.material as THREE.MeshBasicMaterial).color.setHex(0xf43f5e);
-          } else {
-            (sternumHaloRef.current.material as THREE.MeshBasicMaterial).color.setHex(0x38bdf8);
-          }
-        }
-
-        // Animate Finger MAX30102 Halo in sync with cardiac rhythm
-        if (fingerHaloRef.current) {
-          if (currentFinger && currentBpm > 0) {
-            const cardiacPeriod = 60 / currentBpm;
-            const pulsePhase = (elapsed % cardiacPeriod) / cardiacPeriod;
-            const pulseScale = 1.0 + Math.sin(pulsePhase * Math.PI) * 0.5;
-            fingerHaloRef.current.scale.set(pulseScale, pulseScale, 1);
-            fingerHaloRef.current.visible = true;
-          } else {
-            fingerHaloRef.current.visible = false;
-          }
+      // Animate Sternum MPU6050 Halo
+      if (sternumHaloRef.current) {
+        const sternumScale = 1.0 + Math.sin(elapsed * 4) * 0.22;
+        sternumHaloRef.current.scale.set(sternumScale, sternumScale, 1);
+        if (currentMotion >= 2.5) {
+          (sternumHaloRef.current.material as THREE.MeshBasicMaterial).color.setHex(0xf43f5e);
+        } else {
+          (sternumHaloRef.current.material as THREE.MeshBasicMaterial).color.setHex(0xfb7185);
         }
       }
 
@@ -217,30 +215,6 @@ export const Anatomy3DCanvas: React.FC<Anatomy3DCanvasProps> = ({
     };
 
     animate();
-
-    // Mouse drag handlers for 360 degree rotation
-    const onMouseDown = (e: MouseEvent) => {
-      isDraggingRef.current = true;
-      prevMousePosRef.current = { x: e.clientX, y: e.clientY };
-    };
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDraggingRef.current) return;
-      const dx = e.clientX - prevMousePosRef.current.x;
-      const dy = e.clientY - prevMousePosRef.current.y;
-      prevMousePosRef.current = { x: e.clientX, y: e.clientY };
-
-      userRotationRef.current.y += dx * 0.01;
-      userRotationRef.current.x = Math.max(-0.35, Math.min(0.35, userRotationRef.current.x + dy * 0.01));
-    };
-
-    const onMouseUp = () => {
-      isDraggingRef.current = false;
-    };
-
-    container.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
 
     // Resize observer
     const handleResize = () => {
@@ -259,9 +233,6 @@ export const Anatomy3DCanvas: React.FC<Anatomy3DCanvasProps> = ({
 
     return () => {
       isCancelled = true;
-      container.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
       resizeObserver.disconnect();
       if (animFrameIdRef.current) {
         cancelAnimationFrame(animFrameIdRef.current);
@@ -272,18 +243,18 @@ export const Anatomy3DCanvas: React.FC<Anatomy3DCanvasProps> = ({
   }, []);
 
   return (
-    <div className="relative w-full h-52 rounded-2xl overflow-hidden bg-gradient-to-b from-[#040814] to-[#02050c] border border-emerald-500/20 shadow-inner flex items-center justify-center cursor-grab active:cursor-grabbing select-none group">
+    <div className="relative w-full h-52 rounded-2xl overflow-hidden bg-gradient-to-b from-[#040814] to-[#02050c] border border-cyan-500/20 shadow-inner flex items-center justify-center select-none">
       {/* Ambient background glow */}
-      <div className="absolute inset-0 bg-radial from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-radial from-cyan-500/10 via-transparent to-transparent pointer-events-none" />
 
       {/* Three.js canvas container */}
-      <div ref={containerRef} className="w-full h-full" />
+      <div ref={containerRef} className="w-full h-full pointer-events-none" />
 
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-sm z-20 space-y-2">
-          <Loader2 className="w-6 h-6 text-emerald-400 animate-spin" />
-          <span className="text-[10px] font-mono text-emerald-300 tracking-wider">CHARGEMENT ANATOMIE 3D...</span>
+          <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
+          <span className="text-[10px] font-mono text-cyan-300 tracking-wider">CHARGEMENT ANATOMIE 3D...</span>
         </div>
       )}
 
@@ -296,22 +267,14 @@ export const Anatomy3DCanvas: React.FC<Anatomy3DCanvasProps> = ({
 
       {/* Top HUD Badges */}
       <div className="absolute top-2.5 left-3 right-3 flex items-center justify-between pointer-events-none z-10 text-[10px] font-mono">
-        <span className="px-2 py-0.5 rounded-md bg-emerald-950/80 border border-emerald-500/30 text-emerald-400 font-bold flex items-center gap-1 shadow-sm">
-          <Activity className="w-3 h-3 text-emerald-400 animate-pulse" />
+        <span className="px-2 py-0.5 rounded-md bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 font-bold flex items-center gap-1 shadow-sm">
+          <Activity className="w-3 h-3 text-cyan-400 animate-pulse" />
           <span>3D CARTOGRAPHIE</span>
         </span>
 
         <span className="px-2 py-0.5 rounded-md bg-slate-900/80 border border-slate-700 text-slate-300 font-semibold flex items-center gap-1">
           <CheckCircle2 className="w-3 h-3 text-emerald-400" />
           <span>2 NŒUDS I2C</span>
-        </span>
-      </div>
-
-      {/* Bottom Hint */}
-      <div className="absolute bottom-2 inset-x-0 flex justify-center pointer-events-none z-10">
-        <span className="text-[9px] font-mono text-slate-300/80 bg-slate-950/70 px-2 py-0.5 rounded-full border border-slate-800/60 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <RotateCw className="w-2.5 h-2.5" />
-          <span>Glisser pour pivoter en 3D à 360°</span>
         </span>
       </div>
     </div>

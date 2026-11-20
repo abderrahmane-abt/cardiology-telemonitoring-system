@@ -4,9 +4,13 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 const CACHE_NAME = 'cardiopulse-3d-model-cache-v3';
 
-export const HEART_MODEL_URL = '/models/heart.glb';
-export const LUNGS_MODEL_URL = '/models/lungs.glb';
-export const ANATOMY_MODEL_URL = '/models/anatomy.glb';
+const baseUrl = (import.meta.env.BASE_URL || './').endsWith('/')
+  ? (import.meta.env.BASE_URL || './')
+  : `${import.meta.env.BASE_URL || './'}/`;
+
+export const HEART_MODEL_URL = `${baseUrl}models/heart.glb`;
+export const LUNGS_MODEL_URL = `${baseUrl}models/lungs.glb`;
+export const ANATOMY_MODEL_URL = `${baseUrl}models/anatomy.glb`;
 
 const memoryCache = new Map<string, GLTF>();
 const loadingPromises = new Map<string, Promise<GLTF>>();
@@ -127,11 +131,13 @@ export function getOrLoadHeartModel(): Promise<GLTF> {
 }
 
 export function getOrLoadLungsModel(): Promise<GLTF> {
-  return getOrLoadModel(LUNGS_MODEL_URL, 2.6, 0.0);
+  // Scaled down with comfortable margin for volumetric breathing expansion
+  return getOrLoadModel(LUNGS_MODEL_URL, 2.1, 0.0);
 }
 
 export function getOrLoadAnatomyModel(): Promise<GLTF> {
-  return getOrLoadModel(ANATOMY_MODEL_URL, 3.4, 0.0);
+  // Optimal medical framing: Head, chest, and both hands/arms visible with zero wasted thigh space
+  return getOrLoadModel(ANATOMY_MODEL_URL, 4.2, -0.38);
 }
 
 /**

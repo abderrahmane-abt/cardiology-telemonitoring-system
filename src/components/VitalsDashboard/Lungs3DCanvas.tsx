@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { Wind, Loader2, RotateCw } from 'lucide-react';
+import { Wind, Loader2 } from 'lucide-react';
 import { 
   getOrLoadLungsModel, 
   createModelInstance, 
@@ -9,13 +9,13 @@ import {
 
 interface Lungs3DCanvasProps {
   resp: number;
-  finger: boolean;
+  finger?: boolean;
   isAlarmActive?: boolean;
 }
 
 export const Lungs3DCanvas: React.FC<Lungs3DCanvasProps> = ({
   resp,
-  finger,
+  finger = true,
   isAlarmActive = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,11 +39,6 @@ export const Lungs3DCanvas: React.FC<Lungs3DCanvasProps> = ({
   const fingerRef = useRef(finger);
   fingerRef.current = finger;
 
-  // Mouse interaction state
-  const isDraggingRef = useRef(false);
-  const prevMousePosRef = useRef({ x: 0, y: 0 });
-  const userRotationRef = useRef({ x: 0.05, y: 0 });
-
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -54,8 +49,8 @@ export const Lungs3DCanvas: React.FC<Lungs3DCanvasProps> = ({
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-    camera.position.set(0, 0, 4.3);
+    const camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
+    camera.position.set(0, 0, 5.0);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -67,29 +62,31 @@ export const Lungs3DCanvas: React.FC<Lungs3DCanvasProps> = ({
 
     container.replaceChildren(renderer.domElement);
 
-    // Studio Lighting for Biological Tissue
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.6);
+    // Studio Lighting for Biological Tissue (Calibrated so textures are vivid, not washed out)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0x38bdf8, 2.4);
+    const keyLight = new THREE.DirectionalLight(0x38bdf8, 1.5);
     keyLight.position.set(3, 4, 4);
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0x06b6d4, 1.6);
+    const fillLight = new THREE.DirectionalLight(0x06b6d4, 1.1);
     fillLight.position.set(-3, -2, 2);
     scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0x0284c7, 2.0);
+    const rimLight = new THREE.DirectionalLight(0x0284c7, 1.3);
     rimLight.position.set(0, 3, -4);
     scene.add(rimLight);
 
-    const coreLight = new THREE.PointLight(0x38bdf8, 1.8, 6);
+    const coreLight = new THREE.PointLight(0x38bdf8, 1.4, 6);
     coreLight.position.set(0, 0, 0.5);
     coreLightRef.current = coreLight;
     scene.add(coreLight);
 
-    // Lungs Group container
+    // Lungs Group container - Fixed Anatomical Frontal Orientation (No rolling)
     const lungsGroup = new THREE.Group();
+    lungsGroup.position.set(0, -0.05, 0);
+    lungsGroup.rotation.set(0.04, 0, 0);
     lungsGroupRef.current = lungsGroup;
     scene.add(lungsGroup);
 
@@ -123,27 +120,19 @@ export const Lungs3DCanvas: React.FC<Lungs3DCanvasProps> = ({
         setHasError(true);
       });
 
-    // Render & Dynamic Respiration Animation Loop
+    // Render & Respiration Loop (Fixed in place, breathing in sync with CPM)
     const clock = new THREE.Clock();
     let lastPhaseUpdate = 0;
 
     const animate = () => {
       animFrameIdRef.current = requestAnimationFrame(animate);
 
-      const delta = clock.getDelta();
       const elapsed = clock.getElapsedTime();
       const currentResp = respRef.current;
       const currentAlarm = isAlarmRef.current;
 
       if (lungsGroupRef.current) {
-        // Apply user drag rotation + gentle idle breathing sway
-        if (!isDraggingRef.current) {
-          userRotationRef.current.y += delta * 0.2;
-        }
-        lungsGroupRef.current.rotation.y = userRotationRef.current.y;
-        lungsGroupRef.current.rotation.x = userRotationRef.current.x;
-
-        // Dynamic volumetric breathing expansion/contraction
+        // Dynamic volumetric breathing expansion/contraction (No rolling)
         if (currentResp > 0) {
           const cycleDuration = 60 / currentResp; // seconds per breath
           const t = (elapsed % cycleDuration) / cycleDuration; // 0.0 to 1.0
@@ -161,61 +150,39 @@ export const Lungs3DCanvas: React.FC<Lungs3DCanvasProps> = ({
             currentPhase = 'EXP';
           }
 
-          // Throttle React state update to avoid re-renders
+          // Throttle React state update to avoid unnecessary re-renders
           if (elapsed - lastPhaseUpdate > 0.2) {
             lastPhaseUpdate = elapsed;
             setBreathPhase(currentPhase);
           }
 
-          const scaleFactor = 1.0 + breathFactor * 0.13;
+          const scaleFactor = 1.0 + breathFactor * 0.12;
           lungsGroupRef.current.scale.set(
             scaleFactor,
-            scaleFactor * 1.04,
-            scaleFactor * 1.08
+            scaleFactor * 1.03,
+            scaleFactor * 1.06
           );
 
           if (coreLightRef.current) {
-            coreLightRef.current.intensity = 1.5 + breathFactor * 1.8;
+            coreLightRef.current.intensity = 1.6 + breathFactor * 1.6;
           }
         } else {
           lungsGroupRef.current.scale.set(1, 1, 1);
         }
       }
 
-      if (coreLightRef.current && currentAlarm) {
-        coreLightRef.current.color.setHex(0xf43f5e);
-      } else if (coreLightRef.current) {
-        coreLightRef.current.color.setHex(0x38bdf8);
+      if (coreLightRef.current) {
+        if (currentAlarm) {
+          coreLightRef.current.color.setHex(0xf43f5e);
+        } else {
+          coreLightRef.current.color.setHex(0x38bdf8);
+        }
       }
 
       renderer.render(scene, camera);
     };
 
     animate();
-
-    // Mouse drag handlers for 3D rotation
-    const onMouseDown = (e: MouseEvent) => {
-      isDraggingRef.current = true;
-      prevMousePosRef.current = { x: e.clientX, y: e.clientY };
-    };
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDraggingRef.current) return;
-      const dx = e.clientX - prevMousePosRef.current.x;
-      const dy = e.clientY - prevMousePosRef.current.y;
-      prevMousePosRef.current = { x: e.clientX, y: e.clientY };
-
-      userRotationRef.current.y += dx * 0.01;
-      userRotationRef.current.x = Math.max(-0.4, Math.min(0.4, userRotationRef.current.x + dy * 0.01));
-    };
-
-    const onMouseUp = () => {
-      isDraggingRef.current = false;
-    };
-
-    container.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
 
     // Resize observer
     const handleResize = () => {
@@ -234,9 +201,6 @@ export const Lungs3DCanvas: React.FC<Lungs3DCanvasProps> = ({
 
     return () => {
       isCancelled = true;
-      container.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
       resizeObserver.disconnect();
       if (animFrameIdRef.current) {
         cancelAnimationFrame(animFrameIdRef.current);
@@ -247,12 +211,12 @@ export const Lungs3DCanvas: React.FC<Lungs3DCanvasProps> = ({
   }, []);
 
   return (
-    <div className="relative w-full h-52 rounded-2xl overflow-hidden bg-gradient-to-b from-[#040814] to-[#02050c] border border-cyan-500/20 shadow-inner flex items-center justify-center cursor-grab active:cursor-grabbing select-none group">
+    <div className="relative w-full h-52 rounded-2xl overflow-hidden bg-gradient-to-b from-[#040814] to-[#02050c] border border-cyan-500/20 shadow-inner flex items-center justify-center select-none">
       {/* Ambient background glow */}
       <div className="absolute inset-0 bg-radial from-cyan-500/10 via-transparent to-transparent pointer-events-none" />
 
       {/* Three.js canvas container */}
-      <div ref={containerRef} className="w-full h-full" />
+      <div ref={containerRef} className="w-full h-full pointer-events-none" />
 
       {/* Loading overlay */}
       {isLoading && (
@@ -282,14 +246,6 @@ export const Lungs3DCanvas: React.FC<Lungs3DCanvasProps> = ({
             : 'bg-slate-900/80 text-slate-400 border-slate-700'
         }`}>
           {breathPhase === 'INSP' ? 'INSPIRATION' : 'EXPIRATION'}
-        </span>
-      </div>
-
-      {/* Bottom Hint */}
-      <div className="absolute bottom-2 inset-x-0 flex justify-center pointer-events-none z-10">
-        <span className="text-[9px] font-mono text-slate-300/80 bg-slate-950/70 px-2 py-0.5 rounded-full border border-slate-800/60 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <RotateCw className="w-2.5 h-2.5" />
-          <span>Glisser pour pivoter en 3D</span>
         </span>
       </div>
     </div>

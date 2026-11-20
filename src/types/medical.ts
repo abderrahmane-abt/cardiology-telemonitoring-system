@@ -11,6 +11,7 @@ export type VitalStatus =
 export interface VitalSigns {
   bpm: number;
   resp: number;
+  spo2?: number;
   finger: boolean;
   motion: number; // in g
   fallAlert: boolean;

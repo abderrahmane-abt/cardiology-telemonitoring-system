@@ -8,6 +8,7 @@ interface OscilloscopeProps {
   finger: boolean;
   isAlarmActive: boolean;
   soundEnabled: boolean;
+  spo2?: number;
 }
 
 export const OscilloscopeCanvas: React.FC<OscilloscopeProps> = ({
@@ -15,7 +16,8 @@ export const OscilloscopeCanvas: React.FC<OscilloscopeProps> = ({
   resp,
   finger,
   isAlarmActive,
-  soundEnabled
+  soundEnabled,
+  spo2 = 98
 }) => {
   const ppgCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const respCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -30,6 +32,8 @@ export const OscilloscopeCanvas: React.FC<OscilloscopeProps> = ({
 
   const bpmRef = useRef(bpm);
   bpmRef.current = bpm;
+  const spo2Ref = useRef(spo2);
+  spo2Ref.current = spo2;
   const respRef = useRef(resp);
   respRef.current = resp;
   const fingerRef = useRef(finger);
@@ -89,7 +93,7 @@ export const OscilloscopeCanvas: React.FC<OscilloscopeProps> = ({
           if (timeSinceLastBeat >= beatPeriod * 0.94) {
             lastBeatTimeRef.current = now;
             if (soundEnabledRef.current && !isAlarmActive) {
-              medicalAudio.playHeartbeat(currentBpm, 98);
+              medicalAudio.playHeartbeat(currentBpm, spo2Ref.current);
             }
           }
         } else {

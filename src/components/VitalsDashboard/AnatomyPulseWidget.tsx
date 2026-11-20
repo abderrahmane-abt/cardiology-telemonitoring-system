@@ -211,12 +211,12 @@ export const AnatomyPulseWidget: React.FC<AnatomyPulseWidgetProps> = ({
           {/* Metric Telemetry Footer */}
           <div className="w-full flex items-center justify-between text-xs font-mono border-t border-slate-900 pt-3 mt-2 text-slate-300">
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
-              <span className="text-[11px] font-semibold text-slate-300">MAX30102 (Doigt)</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50" />
+              <span className="text-[11px] font-semibold text-cyan-300">MAX30102 (Doigt)</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50" />
-              <span className="text-[11px] font-semibold text-slate-300">MPU6050 (Sternum)</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
+              <span className="text-[11px] font-semibold text-rose-300">MPU6050 (Sternum)</span>
             </span>
           </div>
         </div>

@@ -398,6 +398,7 @@ export const IcuCockpitLayout: React.FC<IcuCockpitLayoutProps> = ({
           finger={vitals.finger}
           isAlarmActive={isAlarmActive}
           soundEnabled={soundEnabled}
+          spo2={vitals.spo2 ?? 98}
         />
       </div>
 
