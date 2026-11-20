@@ -7,7 +7,6 @@ import { HistoryCalendarView } from './components/History/HistoryCalendarView';
 import { EmergencySosView } from './components/EmergencyAlert/EmergencySosView';
 import { EmergencyModal } from './components/EmergencyAlert/EmergencyModal';
 import { HardwareSpecsModal } from './components/HardwareSpecsModal';
-import { DevStyleSwitcher } from './components/DevStyleSwitcher';
 import { UI_STYLES } from './types/themeStyles';
 import type { UIStyleId } from './types/themeStyles';
 import { 
@@ -23,26 +22,18 @@ import type {
   VitalStatus 
 } from './types/medical';
 import { medicalAudio } from './utils/audio';
+import { telemetryService, type ConnectionMode, type ConnectionStatus } from './services/telemetryService';
 
 export const App: React.FC = () => {
   // Navigation State
   const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'PATIENT' | 'HISTORY' | 'SOS'>('DASHBOARD');
 
-  // Multi-Style UI/UX Design System State (4 Styles for evaluation)
-  const [currentStyle, setCurrentStyle] = useState<UIStyleId>(() => {
-    const saved = localStorage.getItem('drhjr_ui_style') as UIStyleId;
-    return (saved && UI_STYLES[saved]) ? saved : 'MEDICARE_LIGHT';
-  });
+  // UI Theme: Theme 4 (ICU Obsidian - Critical Care Hospital Cockpit)
+  const currentStyle: UIStyleId = 'ICU_OBSIDIAN';
+  const styleConfig = UI_STYLES.ICU_OBSIDIAN;
 
-  const styleConfig = UI_STYLES[currentStyle] || UI_STYLES.MEDICARE_LIGHT;
-
-  // Theme State synchronized with current style mode
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => styleConfig.themeMode);
-
-  useEffect(() => {
-    localStorage.setItem('drhjr_ui_style', currentStyle);
-    setTheme(styleConfig.themeMode);
-  }, [currentStyle, styleConfig]);
+  // Theme State (Dark mode for ICU Obsidian cockpit)
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   // Sidebar Collapsed State (Closed by default: icon-rail with menu button to expand)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
@@ -94,22 +85,59 @@ export const App: React.FC = () => {
     return generateMockHistory();
   });
 
-  // Live Vitals State
-  const [bpm, setBpm] = useState<number>(74);
+  // Live Vitals State - Default: DOIGT RETIRÉ (En attente du doigt du volontaire)
+  const [bpm, setBpm] = useState<number>(0);
   const [resp, setResp] = useState<number>(16);
   const [motion, setMotion] = useState<number>(1.02);
-  const [finger, setFinger] = useState<boolean>(true);
+  const [finger, setFinger] = useState<boolean>(false);
   const [fallAlert, setFallAlert] = useState<boolean>(false);
+
+  // Hardware Web Serial / Telemetry Connection State
+  const [connStatus, setConnStatus] = useState<ConnectionStatus>(telemetryService.getStatus());
+  const [connMode, setConnMode] = useState<ConnectionMode>(telemetryService.getMode());
+  const [packetsCount, setPacketsCount] = useState<number>(0);
 
   // Sync audio mute state with medicalAudio instance
   useEffect(() => {
     medicalAudio.setMuted(!soundEnabled);
   }, [soundEnabled]);
 
-  // Compute Clinical Vital Status
+  // Trigger Emergency Countdown Alarm
+  const triggerEmergencyAlert = useCallback((reason: string) => {
+    setFallAlert(true);
+    setEmergencyReason(reason);
+    setIsEmergencyModalOpen(true);
+  }, []);
+
+  // Subscribe to real-time hardware frames (Web Serial / ESP32)
+  useEffect(() => {
+    const unsubFrame = telemetryService.subscribe((frame) => {
+      setBpm(frame.bpm);
+      setResp(frame.resp);
+      setMotion(frame.motion);
+      setFinger(frame.finger);
+      setPacketsCount(telemetryService.getPacketsCount());
+      if (frame.fallAlert) {
+        triggerEmergencyAlert('Alerte chute / syncope détectée par le capteur ESP32');
+      }
+    });
+
+    const unsubStatus = telemetryService.onStatusChange((newStatus, newMode) => {
+      setConnStatus(newStatus);
+      setConnMode(newMode);
+    });
+
+    return () => {
+      unsubFrame();
+      unsubStatus();
+    };
+  }, [triggerEmergencyAlert]);
+
+  // Compute Clinical Vital Status (Detecting Malaise Vagal / Lipothymie / Chute / Tachycardie)
   const status: VitalStatus = useMemo(() => {
     if (!finger) return 'DOIGT_NON_DETECTE';
     if (fallAlert || motion >= 2.5) return 'CHUTE_DETECTEE';
+    if (bpm < 48 || (bpm < 52 && resp < 11)) return 'MALAISE_IMMINENT';
     if (bpm > 100) return 'TACHYCARDIE';
     if (bpm < 60) return 'BRADYCARDIE';
     if (resp > 20) return 'TACHYPNEE';
@@ -127,15 +155,9 @@ export const App: React.FC = () => {
     timestamp: new Date().toISOString()
   };
 
-  // Trigger Emergency Countdown Alarm
-  const triggerEmergencyAlert = useCallback((reason: string) => {
-    setFallAlert(true);
-    setEmergencyReason(reason);
-    setIsEmergencyModalOpen(true);
-  }, []);
-
-  // Handle subtle biological physiological jitter (subtle real human variance)
+  // Handle subtle biological physiological jitter in simulation mode only
   useEffect(() => {
+    if (connMode !== 'SIMULATED') return;
     const interval = setInterval(() => {
       if (finger && !fallAlert && bpm > 0) {
         // Natural sinus jitter (+/- 1 BPM occasionally)
@@ -152,7 +174,7 @@ export const App: React.FC = () => {
       }
     }, 3000);
     return () => clearInterval(interval);
-  }, [finger, fallAlert, bpm]);
+  }, [connMode, finger, fallAlert, bpm]);
 
   // Persist patient update
   const handleUpdatePatient = (updated: PatientProfile) => {
@@ -215,16 +237,22 @@ export const App: React.FC = () => {
           patient={patient}
           vitals={vitals}
           isAlarmActive={isEmergencyModalOpen || fallAlert}
-          theme={theme}
           onTriggerEmergency={() => triggerEmergencyAlert('Déclenchement manuel du test d\'urgence vitale')}
           openHardwareModal={() => setIsHardwareModalOpen(true)}
           currentStyle={currentStyle}
           isSidebarCollapsed={isSidebarCollapsed}
           onToggleSidebar={toggleSidebar}
+          hardwareStatus={{
+            mode: connMode,
+            status: connStatus,
+            packets: packetsCount,
+            onConnectUsb: () => telemetryService.connectSerial(),
+            onDisconnect: () => telemetryService.disconnect()
+          }}
         />
 
         {/* Dynamic Tab Body */}
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 max-w-[1560px] w-full mx-auto p-4 sm:p-6 lg:p-8 xl:p-10">
           {activeTab === 'DASHBOARD' && (
             <VitalsDashboard
               vitals={vitals}
@@ -273,7 +301,7 @@ export const App: React.FC = () => {
         <footer className={`border-t py-4 text-center text-xs font-mono transition-colors ${
           styleConfig.topbarBorder
         } ${styleConfig.topbarBg} ${styleConfig.subText}`}>
-          <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="max-w-[1560px] mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
             <span>Projet Télésurveillance Médicale Connectée (ESP32) • Faculté de Médecine & Ingénierie Biomédicale</span>
             <span className={styleConfig.mainText}>
               DrHJR Clinical TeleMed • Novembre 2026
@@ -302,12 +330,6 @@ export const App: React.FC = () => {
       <HardwareSpecsModal
         isOpen={isHardwareModalOpen}
         onClose={() => setIsHardwareModalOpen(false)}
-      />
-
-      {/* Floating Interactive Dev Style Switcher Pill & Drawer */}
-      <DevStyleSwitcher
-        currentStyle={currentStyle}
-        onSelectStyle={setCurrentStyle}
       />
     </div>
   );

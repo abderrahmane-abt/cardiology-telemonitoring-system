@@ -31,29 +31,16 @@ export const EmergencySosView: React.FC<EmergencySosViewProps> = ({
   patient,
   vitals,
   onTriggerManualEmergency,
-  currentStyle = 'MEDICARE_LIGHT'
+  currentStyle = 'ICU_OBSIDIAN'
 }) => {
   const [copiedMessage, setCopiedMessage] = useState(false);
   const [simulatedCallRole, setSimulatedCallRole] = useState<string | null>(null);
 
-  const styleConfig = UI_STYLES[currentStyle] || UI_STYLES.MEDICARE_LIGHT;
+  const styleConfig = UI_STYLES[currentStyle] || UI_STYLES.ICU_OBSIDIAN;
   const isLight = styleConfig.themeMode === 'light';
 
-  const cardClass = isLight 
-    ? 'bg-white border border-slate-200/90 shadow-sm text-slate-800' 
-    : currentStyle === 'LUME_CYBER'
-    ? 'bg-[#080b14]/95 border border-cyan-500/25 shadow-2xl text-slate-100'
-    : currentStyle === 'ICU_OBSIDIAN'
-    ? 'bg-[#050811] border border-slate-800 shadow-xl font-mono text-slate-100'
-    : 'bg-[#0c142b]/80 border border-slate-700/60 shadow-2xl backdrop-blur-xl text-slate-100';
-
-  const innerBoxClass = isLight
-    ? 'bg-slate-50 border border-slate-200/80 text-slate-800'
-    : currentStyle === 'LUME_CYBER'
-    ? 'bg-[#04060a]/90 border border-slate-800 text-slate-200'
-    : currentStyle === 'ICU_OBSIDIAN'
-    ? 'bg-black/90 border border-slate-800 text-slate-200'
-    : 'bg-[#070d1e]/60 border border-slate-800/80 text-slate-200';
+  const cardClass = 'bg-[#050811] border border-slate-800 shadow-xl font-mono text-slate-100';
+  const innerBoxClass = 'bg-black/90 border border-slate-800 text-slate-200';
 
   const headingText = isLight ? 'text-slate-900' : 'text-white';
   const subText = isLight ? 'text-slate-500' : 'text-slate-400';

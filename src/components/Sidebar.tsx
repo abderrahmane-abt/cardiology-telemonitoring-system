@@ -40,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setSoundEnabled,
   openHardwareModal,
   isAlarmActive,
-  currentStyle = 'MEDICARE_LIGHT',
+  currentStyle = 'ICU_OBSIDIAN',
   isCollapsed: propIsCollapsed,
   onToggleCollapse
 }) => {
@@ -52,7 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setInternalCollapsed(prev => !prev);
   });
 
-  const styleConfig = UI_STYLES[currentStyle] || UI_STYLES.MEDICARE_LIGHT;
+  const styleConfig = UI_STYLES[currentStyle] || UI_STYLES.ICU_OBSIDIAN;
   const isLight = styleConfig.themeMode === 'light';
 
   const handleTabClick = (tab: 'DASHBOARD' | 'PATIENT' | 'HISTORY' | 'SOS') => {

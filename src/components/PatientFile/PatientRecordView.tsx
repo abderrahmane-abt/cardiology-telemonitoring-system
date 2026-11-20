@@ -31,7 +31,7 @@ interface PatientRecordViewProps {
 export const PatientRecordView: React.FC<PatientRecordViewProps> = ({
   patient,
   onUpdatePatient,
-  currentStyle = 'MEDICARE_LIGHT'
+  currentStyle = 'ICU_OBSIDIAN'
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<PatientProfile>({ ...patient });
@@ -39,24 +39,11 @@ export const PatientRecordView: React.FC<PatientRecordViewProps> = ({
   const [newTraitement, setNewTraitement] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const styleConfig = UI_STYLES[currentStyle] || UI_STYLES.MEDICARE_LIGHT;
+  const styleConfig = UI_STYLES[currentStyle] || UI_STYLES.ICU_OBSIDIAN;
   const isLight = styleConfig.themeMode === 'light';
 
-  const cardClass = isLight 
-    ? 'bg-white border border-slate-200/90 shadow-sm text-slate-800' 
-    : currentStyle === 'LUME_CYBER'
-    ? 'bg-[#080b14]/95 border border-cyan-500/25 shadow-2xl text-slate-100'
-    : currentStyle === 'ICU_OBSIDIAN'
-    ? 'bg-[#050811] border border-slate-800 shadow-xl font-mono text-slate-100'
-    : 'bg-[#0c142b]/80 border border-slate-700/60 shadow-2xl backdrop-blur-xl text-slate-100';
-
-  const innerBoxClass = isLight
-    ? 'bg-slate-50 border border-slate-200/80 text-slate-800'
-    : currentStyle === 'LUME_CYBER'
-    ? 'bg-[#04060a]/90 border border-slate-800 text-slate-200'
-    : currentStyle === 'ICU_OBSIDIAN'
-    ? 'bg-black/90 border border-slate-800 text-slate-200'
-    : 'bg-[#070d1e]/60 border border-slate-800/80 text-slate-200';
+  const cardClass = 'bg-[#050811] border border-slate-800 shadow-xl font-mono text-slate-100';
+  const innerBoxClass = 'bg-black/90 border border-slate-800 text-slate-200';
 
   const inputClass = isLight
     ? 'bg-white border border-slate-300 text-slate-900 focus:border-blue-500'

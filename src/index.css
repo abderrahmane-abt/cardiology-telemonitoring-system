@@ -119,6 +119,41 @@
   box-shadow: 0 15px 35px -10px rgba(99, 102, 241, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+/* Hologram & Bio-Radar Animations */
+@keyframes hologramScan {
+  0% { transform: translateY(-100%); opacity: 0; }
+  30% { opacity: 0.9; }
+  70% { opacity: 0.9; }
+  100% { transform: translateY(220%); opacity: 0; }
+}
+
+.animate-hologram-scan {
+  animation: hologramScan 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-radar-sweep {
+  animation: radarSweep 6s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes breathingPulseGlow {
+  0%, 100% {
+    transform: scale(0.96);
+    filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.3));
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 24px rgba(6, 182, 212, 0.8));
+    opacity: 1;
+  }
+}
+
 /* Print Specific Layout for Clinical Medical Dossiers */
 @media print {
   body {

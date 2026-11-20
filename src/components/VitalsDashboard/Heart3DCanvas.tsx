@@ -21,14 +21,14 @@ interface Heart3DCanvasProps {
 export const Heart3DCanvas: React.FC<Heart3DCanvasProps> = ({
   vitals,
   isAlarmActive,
-  currentStyle = 'MEDICARE_LIGHT',
+  currentStyle = 'ICU_OBSIDIAN',
   hideOverlayCards = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoadingModel, setIsLoadingModel] = useState(() => !isHeartModelCached());
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const styleConfig = UI_STYLES[currentStyle] || UI_STYLES.MEDICARE_LIGHT;
+  const styleConfig = UI_STYLES[currentStyle] || UI_STYLES.ICU_OBSIDIAN;
   const isLight = styleConfig.themeMode === 'light';
 
   // References for Three.js objects

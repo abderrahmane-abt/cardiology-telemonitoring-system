@@ -138,11 +138,21 @@ export const SimulationController: React.FC<SimulationControllerProps> = ({
           </button>
 
           <button
+            onClick={() => applyPreset(42, 8, 0.82, true, false)}
+            className="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 border border-purple-500/60 text-purple-200 text-xs font-bold transition cursor-pointer shadow-md hover:scale-[1.02]"
+            title="Simule un malaise vagal imminent / lipothymie avec chute de tension et bradycardie"
+          >
+            <AlertTriangle className="w-4 h-4 text-purple-400" />
+            <span>Malaise Vagal & Lipothymie</span>
+          </button>
+
+          <button
             onClick={() => applyPreset(38, 9, 3.25, true, true)}
-            className="flex items-center justify-center space-x-2 px-3 py-2.5 rounded-xl bg-gradient-to-r from-rose-950/80 to-rose-900/80 hover:from-rose-900 hover:to-rose-800 border-2 border-rose-500 text-white text-xs font-extrabold transition cursor-pointer shadow-lg shadow-rose-950/60 hover:scale-[1.02]"
+            className="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded-xl bg-gradient-to-r from-rose-950/80 to-rose-900/80 hover:from-rose-900 hover:to-rose-800 border-2 border-rose-500 text-white text-xs font-extrabold transition cursor-pointer shadow-lg shadow-rose-950/60 hover:scale-[1.02]"
+            title="Simule une chute brutale avec impact supérieur à 2.5g"
           >
             <AlertTriangle className="w-4 h-4 text-rose-300 animate-bounce" />
-            <span>Chute & Malaise</span>
+            <span>Chute Brutale (&gt;2.5g)</span>
           </button>
         </div>
       </div>
