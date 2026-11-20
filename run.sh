@@ -2,6 +2,7 @@
 
 # ==============================================================================
 # CardioPulse-ESP32 Telemonitoring System - 1-Click Launch Script (Linux / macOS)
+# JUST RUN THE SCRIPT = DONE!
 # ==============================================================================
 
 set -e
@@ -19,29 +20,58 @@ echo "  ================================================================"
 echo "    🫀 CardioPulse-ESP32 Telemonitoring System (ICU Obsidian)    "
 echo "    Faculté de Médecine & CHU - Moniteur Clinique Temps Réel     "
 echo "  ================================================================"
+echo "  ⚡ JUST RUN THE SCRIPT = DONE! Automating setup & launch..."
+echo "  ================================================================"
 echo -e "${NC}"
 
 # Navigate to the script's directory
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 cd "$DIR"
 
+# Auto-install helper for Node.js
+install_node() {
+  echo -e "\n${YELLOW}⚙ Attempting to install Node.js 20 LTS automatically...${NC}"
+  if command -v apt-get >/dev/null 2>&1; then
+    echo -e "${CYAN}Detected Ubuntu / Debian. Updating packages...${NC}"
+    sudo apt-get update && sudo apt-get install -y curl ca-certificates gnupg build-essential
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+  elif command -v dnf >/dev/null 2>&1; then
+    sudo dnf install -y nodejs npm
+  elif command -v pacman >/dev/null 2>&1; then
+    sudo pacman -Sy --noconfirm nodejs npm
+  elif command -v brew >/dev/null 2>&1; then
+    brew install node
+  else
+    echo -e "${RED}Unsupported package manager. Please install Node.js 20 from https://nodejs.org${NC}"
+    exit 1
+  fi
+}
+
 # 1. Check for Node.js
 if ! command -v node >/dev/null 2>&1; then
-  echo -e "${RED}${BOLD}[ERROR] Node.js is not installed!${NC}"
-  echo -e "${YELLOW}To install Node.js 20 LTS on Ubuntu/Debian, run:${NC}"
-  echo "  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -"
-  echo "  sudo apt install -y nodejs"
-  echo ""
-  echo "Or install via NVM: https://github.com/nvm-sh/nvm"
-  exit 1
+  echo -e "${YELLOW}[NOTICE] Node.js is not installed.${NC}"
+  read -p "Would you like to install Node.js 20 LTS automatically? (Requires sudo) [Y/n]: " -n 1 -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+    install_node
+  else
+    echo -e "${RED}Please install Node.js 18+ and re-run this script.${NC}"
+    exit 1
+  fi
 fi
 
 NODE_VER=$(node -v | sed 's/v//' | cut -d'.' -f1)
 if [ "$NODE_VER" -lt 18 ]; then
-  echo -e "${RED}${BOLD}[WARNING] Your Node.js version ($(node -v)) is outdated (< v18).${NC}"
-  echo -e "${YELLOW}Vite and React 19 require Node.js 18 or higher (v20+ LTS recommended).${NC}"
-  echo "Please update Node.js before proceeding."
-  exit 1
+  echo -e "${YELLOW}[WARNING] Your Node.js version ($(node -v)) is outdated (< v18).${NC}"
+  read -p "Would you like to upgrade to Node.js 20 LTS now? [Y/n]: " -n 1 -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+    install_node
+  else
+    echo -e "${RED}Please update Node.js to version 18+ (20+ LTS recommended).${NC}"
+    exit 1
+  fi
 fi
 
 echo -e "${GREEN}✓ Node.js detected:${NC} $(node -v) (v18+ verified)"

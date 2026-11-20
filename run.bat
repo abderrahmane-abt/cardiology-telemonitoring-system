@@ -6,6 +6,8 @@ echo ================================================================
 echo   [CardioPulse-ESP32] Telemonitoring System (ICU Obsidian)
 echo   Faculte de Medecine & CHU - Moniteur Clinique Temps Reel
 echo ================================================================
+echo   JUST RUN THE SCRIPT = DONE!
+echo ================================================================
 echo.
 
 cd /d "%~dp0"
@@ -13,17 +15,24 @@ cd /d "%~dp0"
 :: 1. Check Node.js
 where node >nul 2>nul
 if %errorlevel% neq 0 (
-    color 0C
-    echo [ERROR] Node.js is not installed or not in your system PATH!
-    echo.
-    echo Please download and install Node.js 20 LTS from:
-    echo https://nodejs.org/
-    echo.
-    echo (Make sure to check "Add to PATH" during installation)
-    echo After installing, restart this script.
-    echo.
-    pause
-    exit /b 1
+    color 0E
+    echo [NOTICE] Node.js is not found on your system.
+    echo Attempting to install Node.js 20 LTS via Windows Package Manager (winget)...
+    where winget >nul 2>nul
+    if %errorlevel% equ 0 (
+        winget install OpenJS.NodeJS.LTS --silent --accept-package-agreements --accept-source-agreements
+        echo.
+        echo [OK] Node.js installed! Please close this window and double-click run.bat again.
+        pause
+        exit /b 0
+    ) else (
+        color 0C
+        echo [ERROR] winget not available. Please install Node.js manually from:
+        echo https://nodejs.org/
+        echo (Check "Add to PATH" during installation)
+        pause
+        exit /b 1
+    )
 )
 
 echo [OK] Node.js detected:
@@ -42,7 +51,7 @@ if %errorlevel% neq 0 (
 if not exist "node_modules\" (
     color 0E
     echo.
-    echo [SETUP] Installing project dependencies (npm install)...
+    echo [SETUP] First time setup: Installing dependencies (npm install)...
     echo This only happens once on first startup. Please wait...
     call npm install
     if %errorlevel% neq 0 (

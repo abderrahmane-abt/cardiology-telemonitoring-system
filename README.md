@@ -13,25 +13,23 @@ Built with direct **ESP32 microcontroller hardware integration**, the system pro
 
 ---
 
-## ⚡ 1-Click Launch (The Easiest Way)
+## ⚡ JUST RUN THE SCRIPT = DONE! 🚀
 
-We provide automated 1-click startup scripts for both Linux and Windows that verify prerequisites, install dependencies, launch the local development server, and automatically open your default browser:
+Don't want to spend time reading long guides? We created **1-click automated startup scripts** that handle **everything** for you:
+- Verifies Node.js & npm (and offers to auto-install Node.js 20 LTS if missing or outdated).
+- Automatically installs all packages and dependencies (`npm install`).
+- Starts the Vite development server.
+- **Automatically opens your web browser to `http://localhost:5173`!**
 
-### 🐧 Linux / macOS
+### 🐧 On Linux / Ubuntu / Debian / macOS:
 ```bash
-# 1. Clone repository
-git clone https://github.com/abderrahmane-abt/cardiology-telemonitoring-system.git
-cd cardiology-telemonitoring-system
-
-# 2. Make executable and run
-chmod +x run.sh
 ./run.sh
 ```
+*(Or `chmod +x run.sh && ./run.sh` — That's it! Done.)*
 
-### 🪟 Windows 10 / 11
-1. Open the project folder in File Explorer.
-2. **Double-click `run.bat`** (or execute `.\run.bat` or `.\run.ps1` in PowerShell / Terminal).
-3. The script will automatically verify Node.js, install packages, and open `http://localhost:5173` in your browser.
+### 🪟 On Windows 10 / 11:
+👉 **Just double-click `run.bat` in the folder!**  
+*(Or execute `.\run.bat` or `.\run.ps1` in PowerShell/CMD — That's it! Done.)*
 
 ---
 
