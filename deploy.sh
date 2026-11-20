@@ -11,7 +11,7 @@ cp dist/.nojekyll /tmp/cardiopulse-gh-pages/
 cd /tmp/cardiopulse-gh-pages
 git add -A
 git commit -m "deploy: update GitHub Pages" || true
-git push origin gh-pages
+git push -f origin gh-pages
 cd - > /dev/null
 git worktree remove /tmp/cardiopulse-gh-pages
 echo "🚀 Deployed successfully to https://abderrahmane-abt.github.io/cardiology-telemonitoring-system/"
