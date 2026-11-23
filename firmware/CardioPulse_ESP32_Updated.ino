@@ -373,17 +373,17 @@ void loop() {
   // --- [TRANSMISSION TÉLÉMÉTRIQUE VERS LE SITE WEB] ---
   if (millis() - tSerial >= 100) {
     tSerial = millis();
-    Serial.print("{"bpm":");
+    Serial.print("{\"bpm\":");
     Serial.print(finger ? bpmAvg : 0);
-    Serial.print(","resp":");
+    Serial.print(",\"resp\":");
     Serial.print((int)respRate);
-    Serial.print(","spo2":");
+    Serial.print(",\"spo2\":");
     Serial.print(spo2);
-    Serial.print(","motion":");
+    Serial.print(",\"motion\":");
     Serial.print(currentG, 2);
-    Serial.print(","finger":");
+    Serial.print(",\"finger\":");
     Serial.print(finger ? "true" : "false");
-    Serial.print(","fall":");
+    Serial.print(",\"fall\":");
     Serial.print(fallState == FALL_ALERT ? "true" : "false");
     Serial.println("}");
   }
