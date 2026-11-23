@@ -188,12 +188,16 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                 medicalAudio.playUiClick();
                 hardwareStatus.onDisconnect();
               }}
-              title="ESP32 connecté en direct USB via Web Serial. Cliquez pour déconnecter."
+              title={hardwareStatus.packets > 0 
+                ? `ESP32 en ligne (${hardwareStatus.packets} trames reçues). Cliquez pour déconnecter.`
+                : "ESP32 connecté en USB (Mode Autonome OLED). Détection de chute armée. Cliquez pour déconnecter."}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/60 text-emerald-400 font-mono text-xs font-bold transition hover:bg-emerald-500/30 cursor-pointer"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               <Usb className="w-3.5 h-3.5" />
-              <span className="hidden lg:inline">ESP32 En Ligne</span>
+              <span className="hidden lg:inline">
+                {hardwareStatus.packets > 0 ? 'ESP32 En Ligne' : 'ESP32 (OLED Actif)'}
+              </span>
             </button>
           ) : (
             <button

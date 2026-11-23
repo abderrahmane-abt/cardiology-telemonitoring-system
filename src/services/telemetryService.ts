@@ -158,6 +158,28 @@ class TelemetryService {
                 finger: true,
                 fallAlert: true
               });
+            } else if (trimmed.toUpperCase().includes('ERREUR')) {
+              console.warn('[ESP32 Hardware Warning]:', trimmed);
+              this.notifyStatus('CONNECTED', 'WEB_SERIAL', `Alerte Matérielle: ${trimmed}`);
+            } else {
+              // Plain-text telemetry fallback (e.g. "FC: 72, SpO2: 98%" or "BPM: 70")
+              const bpmMatch = trimmed.match(/(?:bpm|fc|pouls)\s*[:=]?\s*(\d+)/i);
+              const spo2Match = trimmed.match(/(?:spo2|ox|sat)\s*[:=]?\s*(\d+)/i);
+              const respMatch = trimmed.match(/(?:resp|fr|cpm)\s*[:=]?\s*(\d+)/i);
+              
+              if (bpmMatch || spo2Match || respMatch) {
+                const bpmVal = bpmMatch ? parseInt(bpmMatch[1], 10) : 75;
+                const spo2Val = spo2Match ? parseInt(spo2Match[1], 10) : undefined;
+                const respVal = respMatch ? parseInt(respMatch[1], 10) : 16;
+                this.notifyFrame({
+                  bpm: bpmVal,
+                  resp: respVal,
+                  motion: 1.0,
+                  finger: bpmVal > 0,
+                  fallAlert: false,
+                  spo2: spo2Val
+                });
+              }
             }
           }
         }
