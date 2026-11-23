@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Cpu, AlertTriangle, Layers, Zap, Code2, Usb, Copy, Check, Radio, Terminal } from 'lucide-react';
+import { Cpu, AlertTriangle, Layers, Zap, Code2, Usb, Copy, Check, Radio, Terminal, Info } from 'lucide-react';
 import { telemetryService } from '../services/telemetryService';
 import { medicalAudio } from '../utils/audio';
 
@@ -454,6 +454,28 @@ export const HardwareSpecsModal: React.FC<HardwareSpecsModalProps> = ({ isOpen, 
                       <span>{isConnecting ? 'Connexion en cours...' : 'Sélectionner le Port COM (ESP32)'}</span>
                     </button>
                   )}
+                </div>
+
+                {/* Practical Web Serial Troubleshooting Card */}
+                <div className="mt-4 p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2 text-[11px] leading-relaxed">
+                  <div className="flex items-center gap-2 text-cyan-400 font-bold">
+                    <Info className="w-4 h-4 shrink-0" />
+                    <span>Pourquoi le bouton « Se connecter » reste grisé dans la fenêtre du navigateur ?</span>
+                  </div>
+                  <ul className="list-disc list-inside space-y-1.5 text-slate-300 pl-1">
+                    <li>
+                      <strong className="text-white">1. Cliquez sur la ligne du port dans la liste :</strong> Dans la fenêtre Chrome/Edge, le bouton « Se connecter » reste désactivé tant que vous n'avez pas cliqué directement sur le nom du port (ex: <em>CP2102</em> ou <em>USB-SERIAL CH340</em>) pour le sélectionner en bleu.
+                    </li>
+                    <li>
+                      <strong className="text-white">2. Vérifiez le câble USB (Données vs Charge-seule) :</strong> Si la liste est complètement vide, votre câble micro-USB est souvent un câble de « charge seule » (2 fils sans broches de données D+/D-). Testez avec un autre câble USB certifié données (vous devez entendre le son de connexion Windows).
+                    </li>
+                    <li>
+                      <strong className="text-white">3. Pilote USB-UART (CH340 ou CP2102) :</strong> Si le Gestionnaire de périphériques affiche <em>USB2.0-Serial</em> avec un triangle jaune ⚠️, installez le pilote officiel <strong>CH341SER</strong> ou <strong>CP210x</strong>.
+                    </li>
+                    <li>
+                      <strong className="text-white">4. Fermez l'IDE Arduino / Moniteur Série :</strong> Sur Windows, un port COM ne peut être ouvert que par une seule application à la fois. Si le moniteur série d'Arduino ou PuTTY est ouvert, fermez-le.
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
