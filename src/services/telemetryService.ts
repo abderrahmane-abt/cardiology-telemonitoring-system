@@ -12,6 +12,7 @@ export interface TelemetryFrame {
   motion: number;
   finger: boolean;
   fallAlert?: boolean;
+  spo2?: number;
   ir?: number;
   red?: number;
   temp?: number;
@@ -140,6 +141,7 @@ class TelemetryService {
                     motion: parsed.motion ?? 1.0,
                     finger: parsed.finger !== false,
                     fallAlert: parsed.fallAlert ?? parsed.fall ?? false,
+                    spo2: typeof parsed.spo2 === 'number' ? parsed.spo2 : undefined,
                     ir: parsed.ir,
                     red: parsed.red
                   });
@@ -147,6 +149,15 @@ class TelemetryService {
               } catch {
                 // Ignore malformed JSON line chunks
               }
+            } else if (trimmed.toUpperCase().includes('CHUTE')) {
+              // Direct fallback for plain-text alert: "ALERTE : chute detectee !"
+              this.notifyFrame({
+                bpm: 85,
+                resp: 22,
+                motion: 2.8,
+                finger: true,
+                fallAlert: true
+              });
             }
           }
         }

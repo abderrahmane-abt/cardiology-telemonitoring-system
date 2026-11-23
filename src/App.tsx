@@ -88,6 +88,7 @@ export const App: React.FC = () => {
   // Live Vitals State - Default: DOIGT RETIRÉ (En attente du doigt du volontaire)
   const [bpm, setBpm] = useState<number>(0);
   const [resp, setResp] = useState<number>(16);
+  const [spo2, setSpo2] = useState<number>(98);
   const [motion, setMotion] = useState<number>(1.02);
   const [finger, setFinger] = useState<boolean>(false);
   const [fallAlert, setFallAlert] = useState<boolean>(false);
@@ -114,6 +115,9 @@ export const App: React.FC = () => {
     const unsubFrame = telemetryService.subscribe((frame) => {
       setBpm(frame.bpm);
       setResp(frame.resp);
+      if (typeof frame.spo2 === 'number' && frame.spo2 > 0) {
+        setSpo2(frame.spo2);
+      }
       setMotion(frame.motion);
       setFinger(frame.finger);
       setPacketsCount(telemetryService.getPacketsCount());
@@ -148,6 +152,7 @@ export const App: React.FC = () => {
   const vitals: VitalSigns = {
     bpm: finger ? bpm : 0,
     resp,
+    spo2,
     finger,
     motion,
     fallAlert,
